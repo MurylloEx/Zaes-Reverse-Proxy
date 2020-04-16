@@ -12,3 +12,9 @@ Reverse Proxy of Zona Azul Garanhuns servers used to provide HTTPS and balance t
   <br>
   <b>Based proxy scheme</b>
 </p>
+
+<p align="center">
+  <img src="https://user-images.githubusercontent.com/32225687/79405528-0cba8500-7f6b-11ea-89bc-c12f27bc072e.png"/>
+  <br>
+  <b>Server cluster balance algorithm</b>
+</p>
