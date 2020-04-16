@@ -2,9 +2,9 @@
 Reverse Proxy of Zona Azul Garanhuns servers used to provide HTTPS and balance the cluster server charge.
 
 <p align="center">
-  <img width="256" height="256" src="https://user-images.githubusercontent.com/32225687/79375777-8d5b9000-7f2f-11ea-972c-31a3b24558ec.png"/>
+  <img width="256" height="256" src="https://user-images.githubusercontent.com/32225687/79404852-38d50680-7f69-11ea-82b7-0d5613055300.png"/>
   <br>
-  <b>Redbird Proxy</b>
+  <b>Node Http Proxy</b>
 </p>
 
 <p align="center">
