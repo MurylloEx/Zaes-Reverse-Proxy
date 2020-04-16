@@ -1,0 +1,29 @@
+{
+  "name": "zaes-reverse-proxy",
+  "version": "0.0.1",
+  "description": "Proxy Reverso do servidor Zona Azul Garanhuns utilizado para prover o HTTPS e balancear a carga dos servidores.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MurylloEx/ZAES-Reverse-Proxy.git"
+  },
+  "keywords": [
+    "reverse",
+    "proxy",
+    "zaes"
+  ],
+  "author": "Muryllo Pimenta",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/MurylloEx/ZAES-Reverse-Proxy/issues"
+  },
+  "homepage": "https://github.com/MurylloEx/ZAES-Reverse-Proxy#readme",
+  "dependencies": {
+    "colors": "^1.4.0",
+    "express": "^4.17.1",
+    "http-proxy": "^1.18.0"
+  }
+}
