@@ -8,6 +8,7 @@ const path = require('path');
 const app = express();
 const ApiProxy = httpProxy.createProxyServer();
 
+const DASH_ADDR = 'http://127.0.0.1:8081';
 const SERVER_CLUSTER = [
   'http://127.0.0.1:8080'
 ];
@@ -34,7 +35,6 @@ function ScheduleNextServer(req, res, timeout){
 }
 
 app.all(['/adm', '/adm/*'], function(req, res){
-  let DASH_ADDR = 'http://127.0.0.1:8081';
   console.log(`Redirecting traffic data`.white.bgGreen + ` Source: ${req.ip.cyan} -> Destination: ${DASH_ADDR.cyan}`.green);
   ApiProxy.web(req, res, { target: DASH_ADDR }, (e) => {
     console.log(`Redirect data traffic failed!`.yellow.bgRed + ` Source: ${req.ip.cyan} -/-> Destination: ${DASH_ADDR.cyan}`.green);
