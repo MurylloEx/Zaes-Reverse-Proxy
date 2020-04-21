@@ -6,11 +6,12 @@ const fs = require('fs');
 const path = require('path');
 
 const app = express();
-const ApiProxy = httpProxy.createProxyServer();
+const ApiProxy = httpProxy.createProxyServer({ xfwd: false });
 
+const IBGE_ADDR = 'https://servicodados.ibge.gov.br';
+const DASH_ADDR = 'http://127.0.0.1:8081';
 const SERVER_CLUSTER = [
-  'http://srv1.com.br',
-  'http://srv2.com.br'
+  'http://127.0.0.1:8080'
 ];
 
 var ROUND_ROBIN_IDX = 0;
@@ -34,13 +35,29 @@ function ScheduleNextServer(req, res, timeout){
   })();
 }
 
+app.all(['/adm', '/adm/*'], function(req, res){
+  console.log(`Redirecting traffic data`.white.bgGreen + ` Source: ${req.ip.cyan} -> Destination: ${DASH_ADDR.cyan}`.green);
+  ApiProxy.web(req, res, { target: DASH_ADDR }, (e) => {
+    console.log(`Redirect data traffic failed!`.yellow.bgRed + ` Source: ${req.ip.cyan} -/-> Destination: ${DASH_ADDR.cyan}`.green);
+  });
+});
+
+app.all(['/ibge', '/ibge/*'], function(req, res){
+  console.log(`Redirecting traffic data`.white.bgGreen + ` Source: ${req.ip.cyan} -> Destination: ${IBGE_ADDR.cyan}`.green);
+  ApiProxy.web(req, res, { target: IBGE_ADDR }, (e) => {
+    console.log(`Redirect data traffic failed!`.yellow.bgRed + ` Source: ${req.ip.cyan} -/-> Destination: ${IBGE_ADDR.cyan}`.green);
+  });
+});
+
 app.all('*', function(req, res){
   try{
-    ScheduleNextServer(req, res, 3000);
+    ScheduleNextServer(req, res, 10000);
   } catch(e) {
     res.status(500).end();
   }
 });
+
+
 
 https.createServer({
   key:  fs.readFileSync(path.join(__dirname, 'certs/privkey.pem')),
