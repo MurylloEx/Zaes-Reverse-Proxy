@@ -8,7 +8,7 @@ const path = require('path');
 const app = express();
 const ApiProxy = httpProxy.createProxyServer({ xfwd: false });
 
-const IBGE_ADDR = 'https://servicodados.ibge.gov.br';
+const IBGE_ADDR = 'http://servicodados.ibge.gov.br';
 const DASH_ADDR = 'http://127.0.0.1:8081';
 const SERVER_CLUSTER = [
   'http://127.0.0.1:8080'
@@ -42,13 +42,6 @@ app.all(['/adm', '/adm/*'], function(req, res){
   });
 });
 
-app.all(['/ibge', '/ibge/*'], function(req, res){
-  console.log(`Redirecting traffic data`.white.bgGreen + ` Source: ${req.ip.cyan} -> Destination: ${IBGE_ADDR.cyan}`.green);
-  ApiProxy.web(req, res, { target: IBGE_ADDR }, (e) => {
-    console.log(`Redirect data traffic failed!`.yellow.bgRed + ` Source: ${req.ip.cyan} -/-> Destination: ${IBGE_ADDR.cyan}`.green);
-  });
-});
-
 app.all('*', function(req, res){
   try{
     ScheduleNextServer(req, res, 10000);
@@ -56,7 +49,6 @@ app.all('*', function(req, res){
     res.status(500).end();
   }
 });
-
 
 
 https.createServer({
