@@ -4,11 +4,17 @@ const httpProxy = require('http-proxy');
 const https = require('https');
 const fs = require('fs');
 const path = require('path');
+const Waf = require('mini-waf/wafbase');
+const wafrules = require('mini-waf/wafrules');
+
+var wafSettings = wafrules.DefaultSettings;
 
 const app = express();
 const ApiProxy = httpProxy.createProxyServer({ xfwd: false });
 
-const IBGE_ADDR = 'http://servicodados.ibge.gov.br';
+app.use(Waf.WafMiddleware(wafSettings));
+
+
 const DASH_ADDR = 'http://127.0.0.1:8081';
 const SERVER_CLUSTER = [
   'http://127.0.0.1:8080'
