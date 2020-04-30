@@ -28,6 +28,7 @@ function ScheduleNextServer(req, res, timeout){
     if (c_idx < SERVER_CLUSTER.length) {
       console.log(`Redirecting traffic data`.white.bgGreen + ` Source: ${req.ip.cyan} -> Destination: ${SERVER_CLUSTER[ROUND_ROBIN_IDX].cyan}`.green);
       ApiProxy.web(req, res, { target: SERVER_CLUSTER[ROUND_ROBIN_IDX], timeout: timeout }, (e) => {
+        console.log(e);
         RecursiveRoundRobin();
         console.log(`Redirect data traffic failed!`.yellow.bgRed + ` Source: ${req.ip.cyan} -/-> Destination: ${SERVER_CLUSTER[ROUND_ROBIN_IDX].cyan}`.green); 
       });
