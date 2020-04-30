@@ -7,12 +7,10 @@ const path = require('path');
 const Waf = require('mini-waf/wafbase');
 const wafrules = require('mini-waf/wafrules');
 
-var wafSettings = wafrules.DefaultSettings;
-
 const app = express();
 const ApiProxy = httpProxy.createProxyServer({ xfwd: false });
 
-app.use(Waf.WafMiddleware(wafSettings));
+app.use(Waf.WafMiddleware(wafrules.DefaultSettings));
 
 
 const DASH_ADDR = 'http://127.0.0.1:8081';
@@ -28,7 +26,6 @@ function ScheduleNextServer(req, res, timeout){
     if (c_idx < SERVER_CLUSTER.length) {
       console.log(`Redirecting traffic data`.white.bgGreen + ` Source: ${req.ip.cyan} -> Destination: ${SERVER_CLUSTER[ROUND_ROBIN_IDX].cyan}`.green);
       ApiProxy.web(req, res, { target: SERVER_CLUSTER[ROUND_ROBIN_IDX], timeout: timeout }, (e) => {
-        console.log(e);
         RecursiveRoundRobin();
         console.log(`Redirect data traffic failed!`.yellow.bgRed + ` Source: ${req.ip.cyan} -/-> Destination: ${SERVER_CLUSTER[ROUND_ROBIN_IDX].cyan}`.green); 
       });
