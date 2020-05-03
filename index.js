@@ -14,9 +14,7 @@ app.use(Waf.WafMiddleware(wafrules.DefaultSettings));
 
 
 const DASH_ADDR = 'http://127.0.0.1:8081';
-const SERVER_CLUSTER = [
-  'http://127.0.0.1:8080'
-];
+const SERVER_CLUSTER = [ 'http://127.0.0.1:8080' ];
 
 var ROUND_ROBIN_IDX = 0;
 
@@ -24,7 +22,7 @@ function ScheduleNextServer(req, res, timeout){
   let c_idx = 0;
   (function RecursiveRoundRobin() {
     if (c_idx < SERVER_CLUSTER.length) {
-      console.log(`Redirecting traffic data`.white.bgGreen + ` Source: ${req.ip.cyan} -> Destination: ${SERVER_CLUSTER[ROUND_ROBIN_IDX].cyan}`.green);
+      //console.log(`Redirecting traffic data`.white.bgGreen + ` Source: ${req.ip.cyan} -> Destination: ${SERVER_CLUSTER[ROUND_ROBIN_IDX].cyan}`.green);
       ApiProxy.web(req, res, { target: SERVER_CLUSTER[ROUND_ROBIN_IDX], timeout: timeout }, (e) => {
         RecursiveRoundRobin();
         console.log(`Redirect data traffic failed!`.yellow.bgRed + ` Source: ${req.ip.cyan} -/-> Destination: ${SERVER_CLUSTER[ROUND_ROBIN_IDX].cyan}`.green); 
@@ -34,13 +32,14 @@ function ScheduleNextServer(req, res, timeout){
     }
     else{
       console.log('Fatal Error!'.yellow.bgRed + ` All servers unavailable at ${new Date().toLocaleString().yellow}.`.cyan);
-      res.status(500).end();
+      res.set('Content-Type', 'text/html');
+      res.status(502).end('<center><h1>502 Bad Gateway</h1></center><hr><center>https://github.com/MurylloEx/ZAES-Reverse-Proxy</center>');
     }
   })();
 }
 
 app.all(['/adm', '/adm/*'], function(req, res){
-  console.log(`Redirecting traffic data`.white.bgGreen + ` Source: ${req.ip.cyan} -> Destination: ${DASH_ADDR.cyan}`.green);
+  //console.log(`Redirecting traffic data`.white.bgGreen + ` Source: ${req.ip.cyan} -> Destination: ${DASH_ADDR.cyan}`.green);
   ApiProxy.web(req, res, { target: DASH_ADDR }, (e) => {
     console.log(`Redirect data traffic failed!`.yellow.bgRed + ` Source: ${req.ip.cyan} -/-> Destination: ${DASH_ADDR.cyan}`.green);
   });
