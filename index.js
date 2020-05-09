@@ -40,7 +40,7 @@ function ScheduleNextServer(req, res, timeout){
 }
 
 app.all('*', function(req, res){
-  res.redirect(301, req.originalUrl);
+  res.redirect(301, req.originalUrl.replace('http:', 'https:'));
 });
 
 appssl.all(['/adm', '/adm/*'], function(req, res){
