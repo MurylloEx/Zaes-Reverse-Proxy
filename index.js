@@ -55,8 +55,8 @@ appssl.all(['/zaes', '/zaes/*'], function(req, res){
 });
 
 appssl.all('*', function(req, res){
-  console.log(req.headers);
   if (req.headers.host.toUpperCase().indexOf("WWW.PIRACEMA.IO") != -1 && (req.url == "/")){
+    console.log('Piracema.io loaded.');
     res.send('<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd"><html><head> <title>piracema.io</title> <meta name="description" content=""> <meta name="keywords" content=""></head><frameset rows="100%,*" border="0"> <frame src="https://www.piracema.io/portal.piracema.io/" frameborder="0"/></frameset></html>');
   }
   else{
