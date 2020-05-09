@@ -6,22 +6,15 @@ const fs = require('fs');
 const path = require('path');
 const Waf = require('mini-waf/wafbase');
 const wafrules = require('mini-waf/wafrules');
+const secure = require('express-force-https');
 
 const appssl = express();
 const app = express();
 
 const ApiProxy = httpProxy.createProxyServer({ xfwd: false });
 
-function requireHTTPS(req, res, next) {
-  if (!req.secure && req.get('x-forwarded-proto') == 'http') {
-    return res.redirect('https://' + req.get('host') + req.url);
-  }
-  next();
-}
-
+app.use(secure);
 appssl.use(Waf.WafMiddleware(wafrules.DefaultSettings));
-app.use(requireHTTPS);
-
 
 const DASH_ADDR = 'http://127.0.0.1:8081';
 const SERVER_CLUSTER = [ 'http://127.0.0.1:8080' ];
