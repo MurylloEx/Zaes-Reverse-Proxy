@@ -12,7 +12,15 @@ const app = express();
 
 const ApiProxy = httpProxy.createProxyServer({ xfwd: false });
 
+function requireHTTPS(req, res, next) {
+  if (!req.secure && req.get('x-forwarded-proto') == 'http') {
+    return res.redirect('https://' + req.get('host') + req.url);
+  }
+  next();
+}
+
 appssl.use(Waf.WafMiddleware(wafrules.DefaultSettings));
+app.use(requireHTTPS);
 
 
 const DASH_ADDR = 'http://127.0.0.1:8081';
@@ -38,10 +46,6 @@ function ScheduleNextServer(req, res, timeout){
     }
   })();
 }
-
-app.all('*', function(req, res){
-  res.redirect(301, req.originalUrl.replace('http:', 'https:'));
-});
 
 appssl.all(['/adm', '/adm/*'], function(req, res){
   ApiProxy.web(req, res, { target: DASH_ADDR }, (e) => {
