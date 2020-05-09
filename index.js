@@ -55,6 +55,7 @@ appssl.all(['/zaes', '/zaes/*'], function(req, res){
 });
 
 appssl.all('*', function(req, res){
+  console.log(req.headers);
   if (req.headers.host.toUpperCase().indexOf("PORTAL.PIRACEMA.IO") != -1){
     ApiProxy.web(req, res, { target: 'http://127.0.0.1:7071' }, (e) => {
       console.log(`Redirect data traffic failed!`.yellow.bgRed + ` Source: ${req.ip.cyan} -/-> Destination: ${'127.0.0.1:7071'.cyan}`.green);
