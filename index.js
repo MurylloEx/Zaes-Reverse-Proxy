@@ -1,85 +1,66 @@
-const express = require('express');
 const colors = require('colors');
-const httpProxy = require('http-proxy');
-const https = require('https');
-const fs = require('fs');
-const path = require('path');
 const Waf = require('mini-waf/wafbase');
 const wafrules = require('mini-waf/wafrules');
-const secure = require('express-force-https');
+const magicproxy = require('magic-reverse-proxy');
 
-const appssl = express();
-const app = express();
-
-const ApiProxy = httpProxy.createProxyServer({ xfwd: false });
-
-app.use(secure);
 appssl.use(Waf.WafMiddleware(wafrules.DefaultSettings));
 
-const DASH_ADDR = 'http://127.0.0.1:8081';
-const SERVER_CLUSTER = [ 'http://127.0.0.1:8080' ];
+const HTTP_PORT = 80;
+const HTTPS_PORT = 443;
 
-var ROUND_ROBIN_IDX = 0;
-
-function ScheduleNextServer(req, res, timeout){
-  let c_idx = 0;
-  (function RecursiveRoundRobin() {
-    if (c_idx < SERVER_CLUSTER.length) {
-      ApiProxy.web(req, res, { target: SERVER_CLUSTER[ROUND_ROBIN_IDX], timeout: timeout }, (e) => {
-        RecursiveRoundRobin();
-        console.log(`Redirect data traffic failed!`.yellow.bgRed + ` Source: ${req.ip.cyan} -/-> Destination: ${SERVER_CLUSTER[ROUND_ROBIN_IDX].cyan}`.green); 
-      });
-      ROUND_ROBIN_IDX = (ROUND_ROBIN_IDX + 1) % SERVER_CLUSTER.length;
-      c_idx++;
+const proxy_cfg = {
+  enable_hsts: true,
+  allow_unknown_host: false,
+  http: {
+    port: HTTP_PORT,
+    enabled: true,
+    start_callback: function () {
+      console.log(`Started HTTP service in port ${HTTP_PORT}.`);
+    },
+    middlewares: [
+      Waf.WafMiddleware(rules.DefaultSettings)
+    ]
+  },
+  https: {
+    port: HTTPS_PORT,
+    enabled: true,
+    start_callback: function () {
+      console.log(`Started HTTPS service in port ${HTTPS_PORT}.`);
+    },
+    middlewares: [
+      Waf.WafMiddleware(rules.DefaultSettings)
+    ],
+    sslkey: fs.readFileSync(path.join(__dirname, 'certs/privkey.pem')),
+    sslcert: fs.readFileSync(path.join(__dirname, 'certs/cert.pem')),
+    sslchain: fs.readFileSync(path.join(__dirname, 'certs/chain.pem'))
+  },
+  proxies: [
+    {
+      domain: 'api.amstt.com.br',
+      timeout: 10000,
+      round: 0,
+      destination: ['http://127.0.0.1:8080/']
+    },
+    {
+      domain: 'painel.amstt.com.br',
+      timeout: 10000,
+      round: 0,
+      destination: ['http://127.0.0.1:8081/']
+    },
+    {
+      domain: 'consultas.amstt.com.br',
+      timeout: 10000,
+      round: 0,
+      destination: ['http://127.0.0.1:8082/']
     }
-    else{
-      console.log('Fatal Error!'.yellow.bgRed + ` All servers unavailable at ${new Date().toLocaleString().yellow}.`.cyan);
-      res.set('Content-Type', 'text/html');
-      res.status(502).end('<center><h1>502 Bad Gateway</h1></center><hr><center>https://github.com/MurylloEx/ZAES-Reverse-Proxy</center>');
-    }
-  })();
-}
-
-appssl.all(['/adm', '/adm/*'], function(req, res){
-  ApiProxy.web(req, res, { target: DASH_ADDR }, (e) => {
-    console.log(`Redirect data traffic failed!`.yellow.bgRed + ` Source: ${req.ip.cyan} -/-> Destination: ${DASH_ADDR.cyan}`.green);
-  });
-});
-
-appssl.all(['/zaes', '/zaes/*'], function(req, res){
-  try{
-    ScheduleNextServer(req, res, 10000);
-  } catch(e) {
-    res.status(500).end();
+  ],
+  default_proxy: {
+    timeout: 10000,
+    round: 0,
+    destination: ['http://127.0.0.1:8080/']
   }
-});
+};
 
-appssl.all('*', function(req, res){
-  if (req.headers.host.toUpperCase().indexOf("WWW.PIRACEMA.IO") != -1 && (req.url == "/")){
-    console.log('Piracema.io loaded.');
-    res.send('<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd"><html><head> <title>piracema.io</title> <meta name="description" content=""> <meta name="keywords" content=""></head><frameset rows="100%,*" border="0"> <frame src="https://www.piracema.io/portal.piracema.io/" frameborder="0"/></frameset></html>');
-  }
-  else{
-    ApiProxy.web(req, res, { target: 'http://127.0.0.1:7070' }, (e) => {
-      console.log(`Redirect data traffic failed!`.yellow.bgRed + ` Source: ${req.ip.cyan} -/-> Destination: ${'127.0.0.1:7070'.cyan}`.green);
-    });
-  }
-});
+const proxy = magicproxy(proxy_cfg);
 
-
-app.listen(80, () => {
-  console.log(`\n--> Started Zaes Reverse Proxy!\n`.white.bgGreen + `\nRunning on port 80 (HTTP)...`.cyan);
-});
-
-https.createServer({
-  key:  fs.readFileSync(path.join(__dirname, 'certs/privkey.pem')),
-  cert: fs.readFileSync(path.join(__dirname, 'certs/cert.pem')),
-  ca:   fs.readFileSync(path.join(__dirname, 'certs/chain.pem'))
-}, appssl).listen(443, () => {
-  console.log(`\n--> Started Zaes Reverse Proxy!\n`.white.bgGreen + `\nRunning on port 443 (HTTPS)...`.cyan);
-  console.log(`Showing available Zaes Servers...\n`.yellow);
-  for (let idx = 0; idx < SERVER_CLUSTER.length; idx++){
-    console.log(`Server ${idx+1} with address ${SERVER_CLUSTER[idx].yellow.bgRed}`.green);
-  }
-  console.log('\nListening for incoming connections...\n'.cyan);
-});
+proxy.bind();

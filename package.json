@@ -26,7 +26,8 @@
     "express": "^4.17.1",
     "express-force-https": "^1.0.0",
     "http-proxy": "^1.18.1",
-    "mini-waf": "^0.3.87",
+    "magic-reverse-proxy": "0.0.5",
+    "mini-waf": "^0.4.99",
     "nodemon": "^2.0.3",
     "write": "^2.0.0"
   }
